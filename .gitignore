@@ -1,0 +1,5 @@
+__pycache__/
+web_output/
+generated_quotes*/
+pdf_quotes*/
+*.pyc
