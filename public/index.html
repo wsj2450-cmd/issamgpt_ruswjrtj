@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>issamGPT 견적서 생성</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #1f2937;
+      --muted: #667085;
+      --line: #d8dee8;
+      --orange: #f05a1a;
+      --orange-dark: #c7430f;
+      --orange-soft: #fff1e8;
+      --bg: #fff8f3;
+      --white: #ffffff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Malgun Gothic", "맑은 고딕", system-ui, sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+    }
+    header {
+      background: #fff;
+      border-bottom: 1px solid var(--line);
+      padding: 22px 28px 18px;
+    }
+    h1 {
+      margin: 0 0 6px;
+      font-size: 28px;
+      letter-spacing: 0;
+    }
+    .brand {
+      color: var(--orange);
+      font-weight: 900;
+      margin-right: 8px;
+    }
+    .tagline {
+      margin: 8px 0 0;
+      font-size: 15px;
+      font-weight: 700;
+    }
+    main {
+      max-width: 1480px;
+      margin: 0 auto;
+      padding: 26px;
+    }
+    .panel {
+      background: var(--white);
+      border: 1px solid #ffd9c4;
+      border-radius: 10px;
+      padding: 22px;
+      margin-bottom: 18px;
+    }
+    label {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+    input, button {
+      font: inherit;
+    }
+    input {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 12px;
+      background: #fff;
+    }
+    button {
+      border: 1px solid var(--orange);
+      background: var(--orange);
+      color: #fff;
+      border-radius: 6px;
+      padding: 10px 14px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+    button.secondary {
+      background: #fff;
+      color: var(--orange-dark);
+    }
+    button:disabled {
+      opacity: .55;
+      cursor: wait;
+    }
+    .top-controls {
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      gap: 18px;
+      align-items: end;
+      margin-bottom: 18px;
+    }
+    .toolbar {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+    .table-scroll {
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      min-width: 1040px;
+      border-collapse: collapse;
+      background: #fff;
+    }
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: 15px 12px;
+      text-align: left;
+      font-size: 13px;
+      vertical-align: middle;
+    }
+    th {
+      background: var(--orange-soft);
+      font-weight: 800;
+    }
+    .num { width: 82px; }
+    .small { width: 120px; }
+    .amount { width: 170px; }
+    .file-list {
+      display: grid;
+      gap: 10px;
+    }
+    .file-card {
+      border: 1px solid #ffd1b8;
+      background: #fffaf6;
+      border-radius: 8px;
+      padding: 14px;
+    }
+    .file-card strong {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 4px;
+      word-break: break-all;
+    }
+    .file-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      word-break: break-all;
+    }
+    .status {
+      white-space: pre-wrap;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: #fffaf6;
+      padding: 14px;
+      min-height: 54px;
+      line-height: 1.55;
+    }
+    .status.ok { border-color: #99d6c9; background: #f0fdfa; }
+    .status.warn { border-color: #f3c679; background: #fffbeb; }
+    .status.error { border-color: #f4a8a8; background: #fff1f2; }
+    .notice {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1><span class="brand">issamGPT</span>견적서 생성</h1>
+    <p class="tagline">견적서를 많이 뽑아 돈을 많이 벌어봐요</p>
+  </header>
+  <main>
+    <section class="panel">
+      <div class="top-controls">
+        <div>
+          <label for="quoteDate">견적일</label>
+          <input id="quoteDate" type="date" />
+        </div>
+        <div class="toolbar">
+          <button id="addRows">행 추가</button>
+          <button id="clearRows" class="secondary">비우기</button>
+          <button id="openAdmin" class="secondary">어드민 열기</button>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th class="num">번호</th>
+              <th>학교/단체명</th>
+              <th>담당자</th>
+              <th>이메일</th>
+              <th class="small">계정수</th>
+              <th class="small">기간</th>
+              <th class="small">단가</th>
+              <th class="amount">금액</th>
+              <th>품명</th>
+              <th class="small">삭제</th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+      <div class="toolbar">
+        <button id="generate">견적서 + PDF 생성</button>
+        <button id="copyMail" class="secondary">메일 목록 복사/저장</button>
+      </div>
+      <p class="notice">이 링크는 화면만 인터넷에 올린 버전입니다. 파일 생성을 하려면 이 PC에서 로컬 생성기(<strong>localhost:8787</strong>)가 켜져 있어야 합니다.</p>
+    </section>
+
+    <section class="panel">
+      <label>생성된 파일</label>
+      <div id="files" class="file-list">
+        <div class="file-card">
+          <strong>아직 생성된 파일이 없습니다.</strong>
+          <span>견적서를 만들면 ZIP 묶음이 여기에 표시됩니다.</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <label>상태</label>
+      <div id="status" class="status">준비 중...</div>
+    </section>
+  </main>
+
+  <script>
+    const LOCAL_API = localStorage.getItem("issamQuoteLocalApi") || "http://localhost:8787";
+    const state = { rows: [], nextNumber: 1 };
+    const $ = (id) => document.getElementById(id);
+
+    function today() {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    }
+    function setStatus(text, cls = "") {
+      $("status").className = `status ${cls}`;
+      $("status").textContent = text;
+    }
+    async function api(path, options = {}) {
+      const res = await fetch(`${LOCAL_API}${path}`, {
+        headers: { "Content-Type": "application/json" },
+        ...options,
+      });
+      const data = await res.json();
+      if (!res.ok || data.ok === false) throw new Error(data.error || "요청 실패");
+      return data;
+    }
+    async function loadConfig() {
+      await api("/api/config");
+      $("quoteDate").value = today();
+      setStatus("준비 완료. 번호는 1번부터 시작합니다.", "ok");
+      addBlankRow();
+    }
+    function addBlankRow(seed = {}) {
+      state.rows.push({
+        number: seed.number || nextNumberFromRows(),
+        school: seed.school || "",
+        contact: seed.contact || "",
+        email: seed.email || "",
+        accounts: seed.accounts || 6,
+        months: seed.months || 6,
+        unitPrice: seed.unitPrice || 17000,
+        product: seed.product || "issamGPT 학교 PRO 구독권",
+      });
+      renderRows();
+    }
+    function nextNumberFromRows() {
+      const max = state.rows.reduce((m, r) => Math.max(m, Number(r.number) || 0), 0);
+      return max + 1;
+    }
+    function calculatedAmount(accounts, months, unitPrice) {
+      return (Number(accounts) || 0) * (Number(months) || 0) * (Number(unitPrice) || 0);
+    }
+    function updateRow(i, key, value) {
+      state.rows[i][key] = value;
+      renderRows();
+    }
+    function removeRow(i) {
+      state.rows.splice(i, 1);
+      renderRows();
+    }
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, (ch) => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;" }[ch]));
+    }
+    function renderRows() {
+      $("rows").innerHTML = state.rows.map((row, i) => `
+        <tr>
+          <td><input value="${escapeHtml(row.number)}" onchange="updateRow(${i}, 'number', this.value)" /></td>
+          <td><input value="${escapeHtml(row.school)}" onchange="updateRow(${i}, 'school', this.value)" /></td>
+          <td><input value="${escapeHtml(row.contact)}" onchange="updateRow(${i}, 'contact', this.value)" /></td>
+          <td><input value="${escapeHtml(row.email)}" onchange="updateRow(${i}, 'email', this.value)" /></td>
+          <td><input value="${escapeHtml(row.accounts)}" onchange="updateRow(${i}, 'accounts', this.value)" /></td>
+          <td><input value="${escapeHtml(row.months)}" onchange="updateRow(${i}, 'months', this.value)" /></td>
+          <td><input value="${escapeHtml(row.unitPrice)}" onchange="updateRow(${i}, 'unitPrice', this.value)" /></td>
+          <td><input value="${escapeHtml(calculatedAmount(row.accounts, row.months, row.unitPrice).toLocaleString('ko-KR'))}" readonly /></td>
+          <td><input value="${escapeHtml(row.product)}" onchange="updateRow(${i}, 'product', this.value)" /></td>
+          <td><button class="secondary" onclick="removeRow(${i})">삭제</button></td>
+        </tr>
+      `).join("");
+    }
+    function cleanRows() {
+      return state.rows
+        .filter((r) => r.school && Number(r.accounts) >= 6)
+        .map((r) => ({
+          ...r,
+          number: Number(r.number),
+          accounts: Number(r.accounts),
+          months: Number(r.months),
+          unitPrice: Number(r.unitPrice || 17000),
+          amount: calculatedAmount(r.accounts, r.months, r.unitPrice),
+        }));
+    }
+    async function generate() {
+      const rows = cleanRows();
+      if (!rows.length) {
+        setStatus("생성할 6명 이상 행이 없습니다.", "warn");
+        return;
+      }
+      $("generate").disabled = true;
+      setStatus("생성 중입니다. Excel이 잠시 백그라운드로 실행됩니다...");
+      try {
+        const data = await api("/api/generate", {
+          method: "POST",
+          body: JSON.stringify({ quoteDate: $("quoteDate").value, rows }),
+        });
+        await navigator.clipboard.writeText(data.mailText).catch(() => {});
+        renderFiles(data.files || []);
+        setStatus(`완료했습니다.\n\n${data.message}\n\n메일 목록은 클립보드에 복사했습니다.`, "ok");
+      } catch (err) {
+        setStatus(`오류: ${err.message}\n\n로컬 생성기 http://localhost:8787/issamgpt 가 켜져 있는지 확인해주세요.`, "error");
+      } finally {
+        $("generate").disabled = false;
+      }
+    }
+    async function copyMail() {
+      const rows = cleanRows();
+      if (!rows.length) {
+        setStatus("복사할 6명 이상 행이 없습니다.", "warn");
+        return;
+      }
+      try {
+        const data = await api("/api/mail", {
+          method: "POST",
+          body: JSON.stringify({ rows }),
+        });
+        await navigator.clipboard.writeText(data.mailText).catch(() => {});
+        setStatus(`메일 목록을 복사/저장했습니다.\n\n${data.mailText}`, "ok");
+      } catch (err) {
+        setStatus(`오류: ${err.message}`, "error");
+      }
+    }
+    function renderFiles(files) {
+      const items = files.map((file) => `
+        <div class="file-card">
+          <strong>${escapeHtml(file.name)}</strong>
+          <span>${escapeHtml(file.type || "파일")} · 브라우저에서 다운로드할 수 있습니다.</span>
+          <div class="toolbar">
+            <a href="${LOCAL_API}/download?path=${encodeURIComponent(file.path)}" target="_blank"><button class="secondary">다운로드</button></a>
+          </div>
+        </div>
+      `);
+      $("files").innerHTML = items.length ? items.join("") : `
+        <div class="file-card">
+          <strong>아직 생성된 파일이 없습니다.</strong>
+          <span>견적서를 만들면 ZIP 묶음이 여기에 표시됩니다.</span>
+        </div>
+      `;
+    }
+    $("addRows").onclick = () => addBlankRow();
+    $("clearRows").onclick = () => { state.rows = []; addBlankRow(); setStatus("입력 행을 비웠습니다."); };
+    $("generate").onclick = generate;
+    $("copyMail").onclick = copyMail;
+    $("openAdmin").onclick = () => window.open("https://admin.issamgpt.com/operations", "_blank");
+    loadConfig().catch((err) => setStatus(`초기화 오류: ${err.message}\n\n먼저 이 PC에서 로컬 생성기를 켜주세요: http://localhost:8787/issamgpt`, "error"));
+  </script>
+</body>
+</html>
